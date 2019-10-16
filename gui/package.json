@@ -1,0 +1,35 @@
+{
+  "name": "roe",
+  "version": "1.0.0",
+  "description": "Encrypt a file to a BMP image",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package-macos": "electron-packager . --overwrite --extra-resource=./extraResources/roe-cli --platform=darwin --arch=x64 --prune --out=release-builds",
+    "package-win": "electron-packager . --overwrite --extra-resource=./extraResources/roe-cli --asar --icon=assets/icons/icon256.ico --platform=win32 --arch=ia32 --prune=true --out=release-builds --version-string.CompanyName=roe --version-string.FileDescription=roe --version-string.ProductName=\"roe\"",
+    "package-linux": "electron-packager . --overwrite --extra-resource=./extraResources/roe-cli --asar --platform=linux --arch=x64 --prune=true --out=release-builds"
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "bmp",
+    "encrypt",
+    "encryption",
+    "image",
+    "hide"
+  ],
+  "build": {
+    "extraResources": [
+      "./extraResources/**"
+    ]
+  },
+  "author": "topac",
+  "license": "MIT",
+  "devDependencies": {
+    "electromon": "^1.0.10",
+    "electron": "^8.2.2",
+    "electron-packager": "^14.2.1"
+  },
+  "dependencies": {
+    "materialize-css": "^1.0.0"
+  }
+}

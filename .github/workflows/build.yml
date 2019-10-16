@@ -1,0 +1,125 @@
+name: build
+
+on: [push]
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: build the main Dockerfile
+        run: cp .github/workflows/build-dockerfile Dockerfile && docker build -t roe .
+    
+      - run: mkdir -p artifacts
+
+      - name: copy artifacts out of the docker image
+        run: docker run -v $(pwd)/artifacts:/artifacts --entrypoint=sh roe -c 'cp /dist/* /artifacts/'
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v2-preview
+        with:
+          name: roe-build-artifacts
+          path: artifacts
+
+  release:
+    needs: build
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: get the version
+        id: get_version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+
+      - run: mkdir -p artifacts
+
+      - uses: actions/download-artifact@v1
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: roe-build-artifacts
+          path: artifacts
+
+      - run: ls -lhat artifacts
+
+      - name: create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: create_release
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: roe (v${{ steps.get_version.outputs.VERSION }})
+          draft: false
+          prerelease: false
+
+      - name: upload release asset (gui/linux)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/roe-gui-linux-x64.zip
+          asset_name: roe-gui-linux-x64.zip
+          asset_content_type: application/zip
+    
+      - name: upload release asset (cli/linux)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/roe-cli-linux-amd64.zip
+          asset_name: roe-cli-linux-amd64.zip
+          asset_content_type: application/zip
+
+      - name: upload release asset (gui/win)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/roe-gui-windows-ia32.zip
+          asset_name: roe-gui-windows-ia32.zip
+          asset_content_type: application/zip
+
+      - name: upload release asset (cli/win)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/roe-cli-windows-386.zip
+          asset_name: roe-cli-windows-386.zip
+          asset_content_type: application/zip
+
+      - name: upload release asset (gui/darwin)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/roe-gui-darwin-x64.zip
+          asset_name: roe-gui-darwin-x64.zip
+          asset_content_type: application/zip
+
+      - name: upload release asset (cli/darwin)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/roe-cli-darwin-amd64.zip
+          asset_name: roe-cli-darwin-amd64.zip
+          asset_content_type: application/zip

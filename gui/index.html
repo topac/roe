@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <link href="node_modules/materialize-css/dist/css/materialize.css"  rel="stylesheet" type="text/css" />
+    <link href="./style.css"  rel="stylesheet" type="text/css" />
+    <script src="./node_modules/materialize-css/dist/js/materialize.js"></script>
+    <title>roe</title>
+  </head>
+  <body>
+    <main class="container">
+      <div class="row">
+        <div class="input-field col s12">
+          <select id="params-action">
+            <option value="encrypt">Encrypt</option>
+            <option value="decrypt">Decrypt</option>
+          </select>
+          <label>Action</label>
+          <div>
+            <label class="black-text" id="action-msg">
+        
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="input-field col s6">
+          <input type="text" id="params-input" placeholder="" disabled/>
+          <label for="params-input">Input</label>
+          <!-- Dropdown Trigger -->
+          <a class='dropdown-trigger' href='#' data-target='input-btn-dropdown'>Select...</a>
+
+          <!-- Dropdown Structure -->
+          <ul id='input-btn-dropdown' class='dropdown-content'>
+            <li><a href="#!" id="params-input-btn">Select one or more files...</a></li>
+            <li><a href="#!" id="params-input-dir-btn">Select a folder...</a></li>
+          </ul>
+        </div>
+
+        <div class="input-field col s6">
+          <input type="text" id="params-outdir" placeholder="" disabled/>
+          <label for="params-outdir">Destination folder</label>
+          <a id="params-outdir-btn" href="#" class="link">Select...</a>
+        </div>
+      </div>
+
+
+      <div class="row">
+        <div class="input-field col s6">
+          <input type="password" placeholder="Password" id="params-pass" />
+        </div>
+        <div class="input-field col s6">
+          <input type="password" placeholder="Retype password" id="params-pass-conf" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col m2">
+          <button id="params-send-btn" class="waves-effect waves-light btn left" disabled>Encrypt</button>
+        </div>
+
+        <div class="col m10 right">
+          <div class="preloader-wrapper small active" id="params-busy">
+            <div class="spinner-layer">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div><div class="gap-patch">
+                <div class="circle"></div>
+              </div><div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        
+      </div>
+    </main>
+
+    <footer class="center">
+      <small class="grey-text">Distribution and usage of this 
+        software is regulated by the <span title="https://en.wikipedia.org/wiki/MIT_License">MIT License</span></small>
+    </footer>
+    
+    <!-- You can also require other files to run in this process -->
+    <script src="./renderer.js"></script>
+  </body>
+</html>

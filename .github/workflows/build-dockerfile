@@ -1,0 +1,95 @@
+# build roecli (golang)
+FROM golang:1.14-alpine as gobuilder
+RUN apk update && \
+    apk --no-cache add git gcc g++ make ca-certificates
+    
+RUN mkdir /workdir
+RUN mkdir /dist
+
+COPY . /workdir/
+WORKDIR /workdir/pkg
+
+RUN go test ./...
+
+RUN GOOS=windows GOARCH=386 go build -o /dist/roe-cli-windows-386 -ldflags="-s -w" ./cmd/roecli/*.go
+RUN GOOS=windows GOARCH=amd64 go build -o /dist/roe-cli-windows-amd64 -ldflags="-s -w" ./cmd/roecli/*.go
+
+RUN GOOS=linux GOARCH=386 go build -o /dist/roe-cli-linux-386 -ldflags="-s -w" ./cmd/roecli/*.go
+RUN GOOS=linux GOARCH=amd64 go build -o /dist/roe-cli-linux-amd64 -ldflags="-s -w" ./cmd/roecli/*.go
+
+RUN GOOS=darwin GOARCH=386 go build -o /dist/roe-cli-darwin-386 -ldflags="-s -w" ./cmd/roecli/*.go
+RUN GOOS=darwin GOARCH=amd64 go build -o /dist/roe-cli-darwin-amd64 -ldflags="-s -w" ./cmd/roecli/*.go
+
+# build the windows/linux/macos packages
+FROM node
+RUN apt-get update -y && \
+    apt-get install wine64 p7zip-full -y
+
+RUN mkdir /workdir-windows
+RUN mkdir /dist
+
+COPY . /workdir-windows
+COPY . /workdir-linux
+COPY . /workdir-macos
+
+# windows
+
+WORKDIR /workdir-windows
+
+RUN mkdir -p gui/extraResources && \
+    rm -f gui/extraResources/*
+
+COPY --from=gobuilder /dist/roe-cli-windows-386 gui/extraResources/roe-cli
+
+RUN cp gui/extraResources/roe-cli /dist/roe-cli-windows-386.exe && \
+    chmod +x /dist/roe-cli-windows-386.exe && \
+    7z a -y /dist/roe-cli-windows-386.zip /dist/roe-cli-windows-386.exe && \
+    7z t /dist/roe-cli-windows-386.zip && \
+    rm /dist/roe-cli-windows-386.exe
+
+RUN cd gui && \
+    npm install && \
+    npm run package-win && \
+    cd release-builds && \
+    7z a -y /dist/roe-gui-windows-ia32.zip roe-win32-ia32 && 7z t /dist/roe-gui-windows-ia32.zip
+
+# linux
+
+WORKDIR /workdir-linux
+
+RUN mkdir -p gui/extraResources && \
+    rm -f gui/extraResources/*
+
+COPY --from=gobuilder /dist/roe-cli-linux-amd64 gui/extraResources/roe-cli
+
+RUN cp gui/extraResources/roe-cli /dist/roe-cli-linux-amd64 && \
+    chmod +x /dist/roe-cli-linux-amd64 && \
+    7z a -y /dist/roe-cli-linux-amd64.zip /dist/roe-cli-linux-amd64 && \
+    7z t /dist/roe-cli-linux-amd64.zip
+
+RUN cd gui && \
+    npm install && \
+    sh fix-chrome-sandbox.sh && \
+    npm run package-linux && \
+    cd release-builds && \
+    7z a -y /dist/roe-gui-linux-x64.zip roe-linux-x64 && 7z t /dist/roe-gui-linux-x64.zip
+
+# macOS
+
+WORKDIR /workdir-macos
+
+RUN mkdir -p gui/extraResources && \
+    rm -f gui/extraResources/*
+
+COPY --from=gobuilder /dist/roe-cli-darwin-amd64 gui/extraResources/roe-cli
+
+RUN cp gui/extraResources/roe-cli /dist/roe-cli-darwin-amd64 && \
+    chmod +x /dist/roe-cli-darwin-amd64 && \
+    7z a -y /dist/roe-cli-darwin-amd64.zip /dist/roe-cli-darwin-amd64 && \
+    7z t /dist/roe-cli-darwin-amd64.zip
+
+RUN cd gui && \
+    npm install && \
+    npm run package-macos && \
+    cd release-builds && \
+    7z a -y /dist/roe-gui-darwin-x64.zip roe-darwin-x64 && 7z t /dist/roe-gui-darwin-x64.zip

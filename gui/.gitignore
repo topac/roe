@@ -1,0 +1,4 @@
+node_modules
+extraResources/*
+release-builds
+assets/icons/png/*

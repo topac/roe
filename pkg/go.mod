@@ -1,4 +1,4 @@
-module github.com/topac/roe
+module github.com/topac/roe/pkg
 
 go 1.13
 

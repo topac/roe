@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/topac/roe/roe"
+	"github.com/topac/roe/pkg/roe"
 )
 
 func fatalf(err error) {

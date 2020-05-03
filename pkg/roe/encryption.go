@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 )
 
+// KeyFromPassword derives a 256 bits key from the given passphrase.
 func KeyFromPassword(p string) []byte {
 	h := sha256.New()
 	h.Write([]byte(p))
@@ -24,6 +25,8 @@ func KeyFromPassword(p string) []byte {
 	return h.Sum(nil)
 }
 
+// randBuf fills the given buf with random bytes starting from start.
+// With start = 0 the whole buf is filled.
 func randBuf(buf []byte, start int) {
 	_ = buf[start] // guarantee safety of writes below
 	size := len(buf)
@@ -104,6 +107,7 @@ func DecryptFile(srcpath string, outdir string, key []byte) error {
 	return nil
 }
 
+// DecryptDir walks srcdir and calls DecryptFile on each file.
 func DecryptDir(srcdir string, outdir string, key []byte) error {
 	// dict is used to avoid decrypting twice the same file, for e.g.
 	// when Input is []string{"foo.mp4.1-3.bmp", "foo.mp4.2-3.bmp", "foo.mp4.3-3.bmp"}
@@ -137,6 +141,7 @@ func DecryptDir(srcdir string, outdir string, key []byte) error {
 	return filepath.Walk(srcdir, walkFn)
 }
 
+// EncryptDir walks srcdir and calls EncryptFile on each file.
 func EncryptDir(srcdir string, outdir string, key []byte, split int) error {
 	walkFn := func(fp string, fi os.FileInfo, err error) error {
 		if err != nil || fi.IsDir() || fi.Size() == 0 {
@@ -152,6 +157,8 @@ func EncryptDir(srcdir string, outdir string, key []byte, split int) error {
 	return filepath.Walk(srcdir, walkFn)
 }
 
+// EncryptFile encrypts the given file into outdir, writing a new valid .bmp image.
+// Empty files are ignored.
 func EncryptFile(src string, outdir string, key []byte, split int) error {
 	f, err := os.Open(src)
 	if err != nil {

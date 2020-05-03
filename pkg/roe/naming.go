@@ -11,7 +11,9 @@ import (
 	"strings"
 )
 
-var BasenameNotValidErr = fmt.Errorf("not a splitted file")
+// errBasenameNotValid is an error used by newSplittedName when the given file
+// does not resemple an encrypted .bmp image that is part of larger original file.
+var errBasenameNotValid = fmt.Errorf("not a splitted file")
 
 type splitName struct {
 	base  string
@@ -27,29 +29,29 @@ func newSplittedName(fp string) (*splitName, error) {
 	base := filepath.Base(fp)
 
 	if !HasBmpExt(fp) {
-		return nil, BasenameNotValidErr
+		return nil, errBasenameNotValid
 	}
 
 	r := regexp.MustCompile("^(.+)\\.(\\d+)-(\\d+)\\.bmp$")
 	parts := r.FindAllStringSubmatch(base, 3)
 
 	if len(parts) != 1 || len(parts[0]) != 4 {
-		return nil, BasenameNotValidErr
+		return nil, errBasenameNotValid
 	}
 
 	index, err := strconv.Atoi(parts[0][2])
 	if err != nil {
-		return nil, BasenameNotValidErr
+		return nil, errBasenameNotValid
 	}
 	index--
 
 	count, err := strconv.Atoi(parts[0][3])
 	if err != nil {
-		return nil, BasenameNotValidErr
+		return nil, errBasenameNotValid
 	}
 
 	if index >= count || index < 0 {
-		return nil, BasenameNotValidErr
+		return nil, errBasenameNotValid
 	}
 
 	return &splitName{
